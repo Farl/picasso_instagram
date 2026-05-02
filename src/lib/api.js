@@ -32,43 +32,53 @@ const SYSTEM_PROMPT = `
 Return ONLY one valid SVG element.
 No markdown, no explanation, no backticks.
 
-Goal: generate a SIMPLE, clean, flat/cartoon SVG that is easy to render reliably.
+Goal: generate a VISUALLY RICH, production-ready SVG illustration that remains render-safe.
 
 Hard rules:
 - Start with <svg and end with </svg>.
 - Include: width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg".
-- Keep composition minimal: 1 clear subject, optional simple background.
-- Keep element budget low: <= 24 drawable elements.
-- Prefer simple primitives: rect, circle, ellipse, polygon, path.
-- Use <g> for logical groups: background, subject, accent.
-- Use at most one linearGradient; no radial gradients.
+- Keep one clear main subject, but enrich the scene with supporting elements.
+- Target element budget: 28-56 drawable elements.
+- Prefer practical SVG primitives: rect, circle, ellipse, polygon, path.
+- Use layered <g> groups: bg-far, bg-mid, subject-main, subject-detail, fg, accents.
+- Use up to three gradients total (linearGradient preferred, radialGradient optional).
 - Do not use filter, mask, pattern, clipPath, symbol, use, image, foreignObject.
-- Avoid tiny details and all text labels.
-- Keep everything inside the 512x512 canvas with safe margins.
+- Keep all geometry inside the 512x512 canvas with safe margins.
+- Avoid text labels.
 - Do not use scripts, event handlers, foreignObject, external images, or CSS imports.
-- Use readable colors with moderate contrast.
-- Keep coordinates and path data concise; avoid noisy long paths.
+- Use a cohesive 5-10 color palette with clear light/mid/shadow separation.
+- Keep coordinates reasonable and deterministic (no random noise spam).
 
 Preferred output layout:
 1) <svg ...>
-2) optional <defs> (only if one linearGradient is needed)
-3) optional <g id="bg">...</g>
-4) required <g id="subject">...</g>
-5) optional <g id="accent">...</g>
+2) optional <defs> (gradients only)
+3) <g id="bg-far">...</g>
+4) <g id="bg-mid">...</g>
+5) <g id="subject-main">...</g>
+6) <g id="subject-detail">...</g>
+7) optional <g id="fg">...</g>
+8) optional <g id="accents">...</g>
 6) </svg>
 
 Style priorities (in order):
 1) clear silhouette
-2) balanced composition around canvas center
-3) 3-6 color palette
-4) simple shadows via darker fills only (no effects)
-5) clean geometry over ornament detail
+2) rich but readable layering depth (far/mid/main/foreground)
+3) balanced composition with intentional focal point
+4) material/readability cues via flat highlights and shadow shapes
+5) clean geometry and consistent visual language
+
+Detail guidance:
+- Add meaningful secondary objects related to the prompt.
+- Add ground plane or environmental context when appropriate.
+- Add contour breaks, folds, seams, or panels using simple shapes.
+- Use repeated motifs sparingly for texture rhythm (not noise).
+- Keep micro-details controlled so the image still reads at thumbnail size.
 
 Self-check before final output:
 - Is it exactly one <svg> root?
 - Are forbidden tags/attrs absent?
 - Is the subject immediately recognizable at small size?
-- Is drawable element count <= 24?
+- Is drawable element count between 28 and 56?
 - Is there no text element?
 
 Output template (follow exactly):
@@ -88,7 +98,8 @@ export async function generateSvgFromPrompt(prompt) {
     .slice(0, 220);
   const userPrompt = [
     `Subject: ${concisePrompt}.`,
-    'Style: flat vector, bold readable silhouette, minimal details, no text labels.',
+    'Style: rich flat/vector illustration, layered scene depth, strong focal subject, no text labels.',
+    'Include: meaningful secondary details, environmental context, and readable highlights/shadows using fills only.',
     'Output: a single self-contained SVG only.',
   ].join(' ');
 
@@ -105,7 +116,7 @@ export async function generateSvgFromPrompt(prompt) {
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.35,
-      max_tokens: 900,
+      max_tokens: 1300,
     }),
   });
 
