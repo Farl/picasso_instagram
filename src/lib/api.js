@@ -32,28 +32,44 @@ const SYSTEM_PROMPT = `
 Return ONLY one valid SVG element.
 No markdown, no explanation, no backticks.
 
-Goal: generate a SIMPLE, clean, flat/cartoon SVG matching the user prompt.
+Goal: generate a SIMPLE, clean, flat/cartoon SVG that is easy to render reliably.
 
 Hard rules:
 - Start with <svg and end with </svg>.
 - Include: width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg".
-- Keep composition minimal: 1 main subject, optional simple background.
-- Keep element budget low: <= 28 drawable elements.
+- Keep composition minimal: 1 clear subject, optional simple background.
+- Keep element budget low: <= 24 drawable elements.
 - Prefer simple primitives: rect, circle, ellipse, polygon, path.
-- Use <g> for small logical groups (background, subject, accents).
-- Use at most one gradient; no filter, mask, pattern, clipPath.
+- Use <g> for logical groups: background, subject, accent.
+- Use at most one linearGradient; no radial gradients.
+- Do not use filter, mask, pattern, clipPath, symbol, use, image, foreignObject.
 - Avoid tiny details and all text labels.
-- Keep everything inside the 512x512 canvas.
+- Keep everything inside the 512x512 canvas with safe margins.
 - Do not use scripts, event handlers, foreignObject, external images, or CSS imports.
 - Use readable colors with moderate contrast.
+- Keep coordinates and path data concise; avoid noisy long paths.
 
 Preferred output layout:
 1) <svg ...>
-2) optional <defs> (only if one gradient is needed)
+2) optional <defs> (only if one linearGradient is needed)
 3) optional <g id="bg">...</g>
 4) required <g id="subject">...</g>
 5) optional <g id="accent">...</g>
 6) </svg>
+
+Style priorities (in order):
+1) clear silhouette
+2) balanced composition around canvas center
+3) 3-6 color palette
+4) simple shadows via darker fills only (no effects)
+5) clean geometry over ornament detail
+
+Self-check before final output:
+- Is it exactly one <svg> root?
+- Are forbidden tags/attrs absent?
+- Is the subject immediately recognizable at small size?
+- Is drawable element count <= 24?
+- Is there no text element?
 
 Output template (follow exactly):
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
