@@ -38,10 +38,22 @@ Hard rules:
 - Start with <svg and end with </svg>.
 - Include: width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg".
 - Keep composition minimal: 1 main subject, optional simple background.
-- Use few shapes/layers; avoid tiny details and text labels.
+- Keep element budget low: <= 28 drawable elements.
+- Prefer simple primitives: rect, circle, ellipse, polygon, path.
+- Use <g> for small logical groups (background, subject, accents).
+- Use at most one gradient; no filter, mask, pattern, clipPath.
+- Avoid tiny details and all text labels.
 - Keep everything inside the 512x512 canvas.
 - Do not use scripts, event handlers, foreignObject, external images, or CSS imports.
 - Use readable colors with moderate contrast.
+
+Preferred output layout:
+1) <svg ...>
+2) optional <defs> (only if one gradient is needed)
+3) optional <g id="bg">...</g>
+4) required <g id="subject">...</g>
+5) optional <g id="accent">...</g>
+6) </svg>
 `.trim();
 
 export async function generateSvgFromPrompt(prompt) {
@@ -49,7 +61,15 @@ export async function generateSvgFromPrompt(prompt) {
   if (!apiKey) {
     throw new Error('MISSING_API_KEY');
   }
-  const userPrompt = `Create a simple SVG illustration for: ${prompt}. Keep it clean and minimal.`;
+  const concisePrompt = String(prompt || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 220);
+  const userPrompt = [
+    `Subject: ${concisePrompt}.`,
+    'Style: flat vector, bold readable silhouette, minimal details, no text labels.',
+    'Output: a single self-contained SVG only.',
+  ].join(' ');
 
   const res = await fetch(GITHUB_MODELS_ENDPOINT, {
     method: 'POST',
