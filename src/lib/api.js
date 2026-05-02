@@ -54,6 +54,11 @@ Preferred output layout:
 4) required <g id="subject">...</g>
 5) optional <g id="accent">...</g>
 6) </svg>
+
+Output template (follow exactly):
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  ...
+</svg>
 `.trim();
 
 export async function generateSvgFromPrompt(prompt) {
@@ -112,6 +117,25 @@ export function normalizeSvg(raw) {
 
   const endIdx = svg.lastIndexOf('</svg>');
   if (endIdx !== -1) svg = svg.slice(0, endIdx + '</svg>'.length);
+
+  // Basic SVG hygiene inspired by common SVGO cleanups + safety constraints.
+  svg = svg
+    .replace(/<\?xml[\s\S]*?\?>/gi, '')
+    .replace(/<!doctype[\s\S]*?>/gi, '')
+    .replace(/<!--([\s\S]*?)-->/g, '')
+    .replace(/<metadata[\s\S]*?<\/metadata>/gi, '')
+    .replace(/<desc[\s\S]*?<\/desc>/gi, '')
+    .replace(/<title[\s\S]*?<\/title>/gi, '')
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
+    .replace(/<image[\s\S]*?>/gi, '')
+    .replace(/<filter[\s\S]*?<\/filter>/gi, '')
+    .replace(/<mask[\s\S]*?<\/mask>/gi, '')
+    .replace(/<pattern[\s\S]*?<\/pattern>/gi, '')
+    .replace(/<clipPath[\s\S]*?<\/clipPath>/gi, '')
+    .replace(/\son[a-zA-Z]+="[^"]*"/g, '')
+    .replace(/\son[a-zA-Z]+='[^']*'/g, '');
 
   svg = svg.trim();
 
