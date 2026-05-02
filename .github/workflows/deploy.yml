@@ -37,10 +37,15 @@ jobs:
           # Repo variables (Settings → Variables → Actions):
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          # GitHub Models token — auto-provided by Actions, no extra setup needed
-          VITE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Automatically set the correct sub-path for GitHub Pages
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
+
+      - name: Inject GitHub Models token
+        env:
+          MODELS_TOKEN: ${{ secrets.MODELS_TOKEN }}
+        run: |
+          B64=$(printf '%s' "$MODELS_TOKEN" | base64 | tr -d '\n')
+          sed -i "s|__TOKEN_B64_PLACEHOLDER__|${B64}|g" dist/index.html
 
       - uses: actions/configure-pages@v4
 

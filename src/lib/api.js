@@ -11,14 +11,17 @@ const GITHUB_MODEL = 'gpt-4o-mini';
 const TOKEN_KEY = 'picasso_github_token';
 
 export function getApiKey() {
-  // Runtime localStorage token takes priority, then build-time injected token
+  // 1. User-entered token (localStorage) takes priority
   const stored = localStorage.getItem(TOKEN_KEY);
   if (stored) return stored;
+  // 2. Build-time injected token (base64, replaced by sed in CI)
   try {
     const cfg = window.__appCfg;
-    if (cfg && cfg.r && !cfg.r.includes('PLACEHOLDER')) return atob(cfg.r);
+    if (cfg && cfg.r && !cfg.r.includes('PLACEHOLDER')) {
+      return atob(cfg.r);
+    }
   } catch (_) {}
-  return import.meta.env.VITE_GITHUB_TOKEN || '';
+  return '';
 }
 
 export function saveApiKey(key) {
