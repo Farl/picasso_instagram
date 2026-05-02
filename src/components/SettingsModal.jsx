@@ -34,19 +34,24 @@ export default function SettingsModal({ onClose, onUserChange }) {
         </div>
 
         <div className="field-row">
-          <label className="field-label">OpenAI API Key</label>
+          <label className="field-label">GitHub Personal Access Token</label>
           <input
             className="input"
             type="password"
-            placeholder="sk-..."
+            placeholder="github_pat_... or ghp_..."
             value={apiKey}
             onChange={e => setApiKey(e.target.value)}
             autoComplete="off"
             spellCheck={false}
           />
           <p className="field-hint">
-            Your key is stored only in this browser (localStorage) and sent directly to{' '}
-            <code>api.openai.com</code>. Never shared with anyone else.
+            Used to call <code>GitHub Models</code> (free, no credit card).<br />
+            Get one at{' '}
+            <a href="https://github.com/settings/tokens" target="_blank" rel="noreferrer">
+              github.com/settings/tokens
+            </a>
+            {' '}— only <strong>read-only</strong> scope needed.<br />
+            Stored only in this browser, sent only to <code>models.inference.ai.azure.com</code>.
           </p>
         </div>
 

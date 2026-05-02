@@ -1,17 +1,28 @@
 /**
- * OpenAI API wrapper for SVG generation.
- * Replaces window.websim.chat.completions.create().
- * The API key is stored in localStorage and never sent anywhere except api.openai.com.
+ * GitHub Models API wrapper for SVG generation.
+ * Endpoint: https://models.inference.ai.azure.com
+ * Auth: GitHub Personal Access Token (free, no credit card needed).
+ * The token is stored in localStorage and sent only to models.inference.ai.azure.com.
  */
 
-const API_KEY_KEY = 'picasso_openai_key';
+const GITHUB_MODELS_ENDPOINT = 'https://models.inference.ai.azure.com/chat/completions';
+const GITHUB_MODEL = 'gpt-4o-mini';
+
+const TOKEN_KEY = 'picasso_github_token';
 
 export function getApiKey() {
-  return localStorage.getItem(API_KEY_KEY) || '';
+  // Runtime localStorage token takes priority, then build-time injected token
+  const stored = localStorage.getItem(TOKEN_KEY);
+  if (stored) return stored;
+  try {
+    const cfg = window.__appCfg;
+    if (cfg && cfg.r && !cfg.r.includes('PLACEHOLDER')) return atob(cfg.r);
+  } catch (_) {}
+  return import.meta.env.VITE_GITHUB_TOKEN || '';
 }
 
 export function saveApiKey(key) {
-  localStorage.setItem(API_KEY_KEY, key.trim());
+  localStorage.setItem(TOKEN_KEY, key.trim());
 }
 
 const SYSTEM_PROMPT = `
@@ -57,14 +68,14 @@ export async function generateSvgFromPrompt(prompt) {
   const randomToken = Math.random().toString(36).slice(2, 10);
   const augmentedPrompt = `${prompt}\n\nAdditional requirement: introduce subtle, unique visual details inspired by this random code (do NOT render the code as text anywhere in the SVG): ${randomToken}.`;
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch(GITHUB_MODELS_ENDPOINT, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      model: GITHUB_MODEL,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: augmentedPrompt },

@@ -35,10 +35,10 @@ jobs:
         run: npm run build
         env:
           # Repo variables (Settings → Variables → Actions):
-          #   VITE_SUPABASE_URL      — your project URL
-          #   VITE_SUPABASE_ANON_KEY — your project anon key
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          # GitHub Models token — auto-provided by Actions, no extra setup needed
+          VITE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Automatically set the correct sub-path for GitHub Pages
           VITE_BASE_PATH: /${{ github.event.repository.name }}/
 

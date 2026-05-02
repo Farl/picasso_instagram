@@ -38,7 +38,7 @@ export default function App() {
       {/* Hint for new users */}
       {showHint && !showCreator && !showSettings && (
         <button className="fab-hint" onClick={() => { setShowHint(false); setShowSettings(true); }}>
-          ⚙️ Set your OpenAI key to start
+          ⚙️ Set your GitHub token to start
         </button>
       )}
 
