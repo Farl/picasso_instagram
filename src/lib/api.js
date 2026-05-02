@@ -29,37 +29,19 @@ export function saveApiKey(key) {
 }
 
 const SYSTEM_PROMPT = `
-You are a professional SVG illustration engine.
-Return ONLY valid SVG markup, no explanations, no code fences, no backticks.
+Return ONLY one valid SVG element.
+No markdown, no explanation, no backticks.
 
-Important capability constraints:
-- You can only produce SIMPLE vector graphics in a cartoon / flat style.
-- Focus on clear front, side, or top views of objects and characters.
-- Avoid complex scenes, detailed backgrounds, tiny intricate elements, or photorealistic rendering.
-- Use a limited number of shapes and layers; keep the composition clean and readable.
+Goal: generate a SIMPLE, clean, flat/cartoon SVG matching the user prompt.
 
-Core behavior:
-- The visual content must closely and consistently reflect the user's text prompt.
-- Accurately depict the key subjects, objects, and relationships mentioned in the prompt.
-- Keep style, colors, and mood coherent with the prompt while staying in simple cartoon/flat vector art.
-- Do not introduce major new elements that are not implied by the prompt.
-
-Overall goals:
-- Create a clear, simple illustration that matches the prompt in both content and style.
-- Favor bold, readable shapes over fine detail.
-- Use thoughtful but minimal composition (foreground and background kept simple).
-- Add subtle details so the image feels deliberate, but do not exceed simple cartoon complexity.
-
-SVG requirements:
-- Must include: width="512" height="512" viewBox="0 0 512 512"
-- Use only pure SVG (shapes, paths, gradients, groups, clipping). No external images.
-- Do NOT include any scripts, event handlers, or interactive attributes.
-- Prefer <path>, <rect>, <circle>, <ellipse>, <polygon>, <linearGradient>, <radialGradient>, <mask>, and <g>.
-- Use a small number of layers (via <g>) to create a bit of depth.
-- Use color harmonies and gentle gradients to give a polished look.
-- Add mild shading and highlights with gradients, opacity, and overlapping shapes, but keep them simple.
-- Ensure all shapes are fully within the 0 0 512 512 viewBox.
-- Keep the code syntactically valid and minimal (no comments, no metadata).
+Hard rules:
+- Start with <svg and end with </svg>.
+- Include: width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg".
+- Keep composition minimal: 1 main subject, optional simple background.
+- Use few shapes/layers; avoid tiny details and text labels.
+- Keep everything inside the 512x512 canvas.
+- Do not use scripts, event handlers, foreignObject, external images, or CSS imports.
+- Use readable colors with moderate contrast.
 `.trim();
 
 export async function generateSvgFromPrompt(prompt) {
@@ -67,9 +49,7 @@ export async function generateSvgFromPrompt(prompt) {
   if (!apiKey) {
     throw new Error('MISSING_API_KEY');
   }
-
-  const randomToken = Math.random().toString(36).slice(2, 10);
-  const augmentedPrompt = `${prompt}\n\nAdditional requirement: introduce subtle, unique visual details inspired by this random code (do NOT render the code as text anywhere in the SVG): ${randomToken}.`;
+  const userPrompt = `Create a simple SVG illustration for: ${prompt}. Keep it clean and minimal.`;
 
   const res = await fetch(GITHUB_MODELS_ENDPOINT, {
     method: 'POST',
@@ -81,8 +61,10 @@ export async function generateSvgFromPrompt(prompt) {
       model: GITHUB_MODEL,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
-        { role: 'user', content: augmentedPrompt },
+        { role: 'user', content: userPrompt },
       ],
+      temperature: 0.35,
+      max_tokens: 900,
     }),
   });
 
